@@ -31,6 +31,30 @@
 &emsp;&emsp;**用法:** array_a 与 array_b合并后返回,axis制定在哪个维度上合并.但是numpy.array不适合用于**大规模,经常性**的动态扩展.
 &emsp;&emsp;[关于numpy初始化空数组,以及如何扩展的说明](https://vimsky.com/article/3717.html)
 
+#os
+---
+##os.path.isfile(filename)
+&emsp;&emsp;**参数:** filename 文件名
+&emsp;&emsp;**用法:** 判断filename文件是否存在
+
+#pickle
+---
+简单理解:对象序列化到磁盘,或从磁盘文件反序列化成对象
+```
+import pickle
+
+def storeTree(inputTree, fileName):
+    fw = open(fileName, "wb")
+    pickle.dump(inputTree, fw)
+    fw.close()
+
+
+def loadTree(fileName):
+    fr = open(fileName, "rb")
+    return pickle.load(fr)
+```
+
+
 #Matplotlib
 ---
 ##figure()

@@ -1,6 +1,9 @@
 import math
 import operator
 import id3.tree_plotter as pt
+import pickle
+import os
+import datetime
 
 
 def calcShannonEntropy(dataSet):
@@ -44,15 +47,10 @@ def spiltDataSet(dataSet: [[]], featureAxis: int, value):
 
 
 def createDataSet():
-    dataSet = [
-        [1, 1, 'yes'],
-        [1, 1, 'yes'],
-        [1, 0, 'no'],
-        [0, 1, 'no'],
-        [0, 1, 'no']
-    ]
-    featureName = ['no surfacing', 'flippers']
-    return dataSet, featureName
+    fr = open(DATA_SET_PATH, "r")
+    dataSet = [sample.strip().split('\t') for sample in fr.readlines()]
+    featureNames = ['age', 'prescript', 'astigmatic', 'tearRate']
+    return dataSet, featureNames
 
 
 def calcBestFeature(dataSet: [[]]):
@@ -110,12 +108,44 @@ def createTree(dataSet, featureNames: []):
     return tree;
 
 
+def id3classify(inputTree, featureLabels, testVec):
+    featureName = list(inputTree.keys())[0]
+    featureDict = inputTree[featureName]
+
+    featureIndex = featureLabels.index(featureName)
+    for key in featureDict.keys():
+        if key == testVec[featureIndex]:
+            if type(featureDict[key]).__name__ == 'dict':
+                classLabel = id3classify(featureDict[key], featureLabels, testVec)
+            else:
+                classLabel = featureDict[key]
+    return classLabel
+
+
+def storeTree(inputTree, fileName):
+    fw = open(fileName, "wb")
+    pickle.dump(inputTree, fw)
+    fw.close()
+
+
+def loadTree(fileName):
+    fr = open(fileName, "rb")
+    return pickle.load(fr)
+
+
+STORE_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/model/id3.model'
+DATA_SET_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/lenses.txt'
+
+
 def main():
-    dataSet, featureName = createDataSet()
-    # shannonEntropy = calcShannonEntropy(dataSet)
-    # bestFeature, _ = calcBestFeature(dataSet)
-    tree = createTree(dataSet, featureName)
-    pt.createPlot(tree)
+    if os.path.isfile(STORE_PATH):
+        tree, featureNames = loadTree(STORE_PATH)
+    else:
+        dataSet, featureNames = createDataSet()
+        tree = createTree(dataSet, featureNames[:])
+    storeTree((tree, featureNames), STORE_PATH)
+    print(id3classify(tree, featureNames, ['young', 'myope', 'no', 'reduced']))
+    # pt.createPlot(tree)
 
 
 if __name__ == '__main__':
