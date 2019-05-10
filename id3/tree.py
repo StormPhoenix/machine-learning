@@ -143,9 +143,9 @@ def main():
     else:
         dataSet, featureNames = createDataSet()
         tree = createTree(dataSet, featureNames[:])
-    storeTree((tree, featureNames), STORE_PATH)
+        storeTree((tree, featureNames), STORE_PATH)
     print(id3classify(tree, featureNames, ['young', 'myope', 'no', 'reduced']))
-    # pt.createPlot(tree)
+    pt.createPlot(tree)
 
 
 if __name__ == '__main__':
