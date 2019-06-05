@@ -108,7 +108,7 @@ def showDateFigure():
 
 
 def main():
-    # showDateFigure()
+    showDateFigure()
     caseHandwritingClassify()
 
 

@@ -31,6 +31,8 @@
 &emsp;&emsp;**用法:** array_a 与 array_b合并后返回,axis制定在哪个维度上合并.但是numpy.array不适合用于**大规模,经常性**的动态扩展.
 &emsp;&emsp;[关于numpy初始化空数组,以及如何扩展的说明](https://vimsky.com/article/3717.html)
 
+##numpy.multiply, numpy.dot, * 
+[区别参考链接](https://blog.csdn.net/zenghaitao0128/article/details/78715140)
 #os
 ---
 ##os.path.isfile(filename)
