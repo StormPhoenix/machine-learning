@@ -4,12 +4,13 @@ import matplotlib.pyplot as plt
 SVM_TEST_SET_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSet.txt'
 
 
-def showGraph(coord, label):
+def showGraph(coord, label, x1, y1, x2, y2):
     coordArray = np.array(coord)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.scatter(coordArray[:, 0], coordArray[:, 1],
                (np.array(label) + 2) * 15, (np.array(label) + 2) * 15)
+    plt.plot([x1, x2], [y1, y2])
     plt.show()
 
 
@@ -111,13 +112,17 @@ def main():
     b, alphas = smoSimple(dataMat, labelMat, 0.6, 0.001, 40)
     print(b, alphas[alphas > 0])
 
-    # dataX = [data[0] for data in dataMat]
-    # x1 = min(dataX)
-    # Ui = float(np.multiply(alphas, labelMatrix).T * (dataMatrix * dataMatrix[i, :].T)) + b
-    # y1 = np.multiply(alphas, labelMat) (dataMat * )
-    # x2 = max(dataX)
+    W = np.multiply(np.multiply(alphas, np.mat(labelMat).transpose()), np.mat(dataMat)).sum(0)
+    w1 = W.getA1()[0]
+    w2 = W.getA1()[1]
+    b = b.getA1()[0]
+    y1 = -5
+    x1 = (-b - w2 * y1) / w1
 
-    showGraph(dataMat, labelMat)
+    y2 = 3
+    x2 = (-b - w2 * y2) / w1
+
+    showGraph(dataMat, labelMat, x1, y1, x2, y2)
 
 
 if __name__ == '__main__':
