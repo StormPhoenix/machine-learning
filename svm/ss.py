@@ -227,11 +227,11 @@ def calcWs(alphas, dataArr, classLabels):
 
 
 def testRbf(k1=1.3):
-    dataArr, labelArr = loadDataSet('testSetRBF.txt')
+    dataArr, labelArr = loadDataSet('/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSetRBF.txt')
     b, alphas = smoP(dataArr, labelArr, 200, 0.0001, 10000, ('rbf', k1))  # C=200 important
     datMat = mat(dataArr);
     labelMat = mat(labelArr).transpose()
-    svInd = nonzero(alphas.A > 0)[0]
+    svInd, _ = nonzero(alphas[:, 0])
     sVs = datMat[svInd]  # get matrix of only support vectors
     labelSV = labelMat[svInd];
     m, n = shape(datMat)
@@ -240,7 +240,8 @@ def testRbf(k1=1.3):
         kernelEval = kernelTrans(sVs, datMat[i, :], ('rbf', k1))
         predict = kernelEval.T * multiply(labelSV, alphas[svInd]) + b
         if sign(predict) != sign(labelArr[i]): errorCount += 1
-    dataArr, labelArr = loadDataSet('testSetRBF2.txt')
+    print("the training error rate is: %f." % (float(errorCount) / m))
+    dataArr, labelArr = loadDataSet('/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSetRBF2.txt')
     errorCount = 0
     datMat = mat(dataArr);
     labelMat = mat(labelArr).transpose()
@@ -249,6 +250,9 @@ def testRbf(k1=1.3):
         kernelEval = kernelTrans(sVs, datMat[i, :], ('rbf', k1))
         predict = kernelEval.T * multiply(labelSV, alphas[svInd]) + b
         if sign(predict) != sign(labelArr[i]): errorCount += 1
+    print("the test error rate is: %f." % (float(errorCount) / m))
+    print(b)
+    # print(alphas[alphas > 0])
 
 
 def img2vector(filename):
@@ -416,6 +420,7 @@ def smoPK(dataMatIn, classLabels, C, toler, maxIter):  # full Platt SMO
             entireSet = True
     return oS.b, oS.alphas
 
+
 def showGraph(coord, label, x1, y1, x2, y2):
     coordArray = array(coord)
     fig = plt.figure()
@@ -425,22 +430,24 @@ def showGraph(coord, label, x1, y1, x2, y2):
     plt.plot([x1, x2], [y1, y2])
     plt.show()
 
+
 def main():
-    dataMat, labelMat = loadDataSet('/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSet.txt')
+    testRbf()
+    # dataMat, labelMat = loadDataSet('/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSet.txt')
     # b, alphas = smoPlatt(dataMat, labelMat, 0.6, 0.001, 40)
-    b, alphas = smoP(dataMat, labelMat, 0.6, 0.001, 40)
-    print(b, alphas[alphas > 0])
+    # b, alphas = smoP(dataMat, labelMat, 0.6, 0.001, 40)
+    # print(b, alphas[alphas > 0])
 
-    W = multiply(multiply(alphas, mat(labelMat).transpose()), mat(dataMat)).sum(0)
-    w1 = W.getA1()[0]
-    w2 = W.getA1()[1]
-    b = b.getA1()[0]
-    y1 = -5
-    x1 = (-b - w2 * y1) / w1
+    # W = multiply(multiply(alphas, mat(labelMat).transpose()), mat(dataMat)).sum(0)
+    # w1 = W.getA1()[0]
+    # w2 = W.getA1()[1]
+    # b = b.getA1()[0]
+    # y1 = -5
+    # x1 = (-b - w2 * y1) / w1
 
-    y2 = 3
-    x2 = (-b - w2 * y2) / w1
-    showGraph(dataMat, labelMat, x1, y1, x2, y2)
+    # y2 = 3
+    # x2 = (-b - w2 * y2) / w1
+    # showGraph(dataMat, labelMat, x1, y1, x2, y2)
 
 
 if __name__ == '__main__':

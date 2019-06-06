@@ -2,10 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 SVM_TEST_SET_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSet.txt'
+SVM_TEST_SET_RBF_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSetRBF.txt'
+SVM_TEST_SET_RBF2_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSetRBF2.txt'
 
 
 class SmoCacheStruct:
-    def __init__(self, dataMatIn, labels, paramC, paramToler):
+    def __init__(self, dataMatIn, labels, paramC, paramToler, kernelType=('lin', 0)):
         self.x = dataMatIn
         self.y = labels
         self.paramC = paramC
@@ -14,21 +16,25 @@ class SmoCacheStruct:
         self.alphas = np.mat(np.zeros((self.dataSize, 1)))
         self.b = np.mat([[0]])
         self.errorCache = np.mat(np.zeros((self.dataSize, 2)))
+        self.kernel = np.mat(np.zeros((self.dataSize, self.dataSize)))
+        for i in range(self.dataSize):
+            self.kernel[:, i] = transKernel(self.x, self.x[i], kernelType)
 
 
 def calculateError(scs: SmoCacheStruct, i):
-    Ui = float(np.multiply(scs.alphas, scs.y).T * (scs.x * scs.x[i, :].T)) + scs.b
+    Ui = float(np.multiply(scs.alphas, scs.y).T * (scs.kernel[:, i])) + float(scs.b)
     Ei = Ui - float(scs.y[i])
     return Ei
 
 
-def showGraph(coord, label, x1, y1, x2, y2):
+def showGraph(coord, label, x1=-1, y1=-1, x2=-1, y2=-1):
     coordArray = np.array(coord)
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.scatter(coordArray[:, 0], coordArray[:, 1],
                (np.array(label) + 2) * 15, (np.array(label) + 2) * 15)
-    plt.plot([x1, x2], [y1, y2])
+    if x1 != -1 or x2 != -1:
+        plt.plot([x1, x2], [y1, y2])
     plt.show()
 
 
@@ -73,7 +79,7 @@ def selectJ(scs: SmoCacheStruct, i, errorI):
             return j, errorJ
         else:
             return j, calculateError(scs, j)
-        # return j, errorJ
+            # return j, errorJ
     j = selectRandomly(i, scs.dataSize)
     errorJ = calculateError(scs, j)
     return j, errorJ
@@ -93,12 +99,12 @@ def loadDataSet(filename):
     for line in fr.readlines():
         lineArray = line.strip().split('\t')
         dataMat.append([float(lineArray[0]), float(lineArray[1])])
-        labelMat.append(int(lineArray[2]))
+        labelMat.append(float(lineArray[2]))
     return dataMat, labelMat
 
 
-def smoPlatt(dataMat, labels, paramC, paramToler, maxIterCount):
-    scs: SmoCacheStruct = SmoCacheStruct(np.mat(dataMat), np.mat(labels).transpose(), paramC, paramToler)
+def smoPlatt(dataMat, labels, paramC, paramToler, maxIterCount, kernelType=('lin', 0)):
+    scs: SmoCacheStruct = SmoCacheStruct(np.mat(dataMat), np.mat(labels).transpose(), paramC, paramToler, kernelType)
     iterCount = 0
     newEntireSet = True
     alphasPairsChanged = 0
@@ -134,22 +140,20 @@ def smoPlattInner(scs: SmoCacheStruct, i):
         oldAlphaJ = scs.alphas[j].copy()
         # calculate border
         if scs.y[i] != scs.y[j]:
-            L = max(0, scs.alphas[j] - scs.alphas[i])
-            H = min(scs.paramC, scs.paramC + scs.alphas[j] - scs.alphas[i])
+            L = max(0, scs.alphas[j, 0] - scs.alphas[i, 0])
+            H = min(scs.paramC, scs.paramC + scs.alphas[j, 0] - scs.alphas[i, 0])
         else:
-            L = max(0, scs.alphas[i] + scs.alphas[j] - scs.paramC)
-            H = min(scs.paramC, scs.alphas[i] + scs.alphas[j])
+            L = max(0, scs.alphas[i, 0] + scs.alphas[j, 0] - scs.paramC)
+            H = min(scs.paramC, scs.alphas[i, 0] + scs.alphas[j, 0])
         if L == H:
             print("L == H")
             return 0
-        eta = 2.0 * scs.x[i, :] * scs.x[j].T - scs.x[i, :] * scs.x[i, :].T - scs.x[j, :] * scs.x[j, :].T
+        eta = 2.0 * scs.kernel[i, j] - scs.kernel[i, i] - scs.kernel[j, j]
         if eta >= 0:
             print("eta >= 0")
             return
         scs.alphas[j] -= scs.y[j] * (errorI - errorJ) / eta
         scs.alphas[j] = clipAlpha(scs.alphas[j], L, H)
-        # scs.alphas[j] = oldAlphaJ + scs.y[j] * (errorJ - errorI) / eta
-        # scs.alphas[j] = clipAlpha(scs.alphas[j], L, H)
         updateErrorK(scs, j)
         if abs(scs.alphas[j] - oldAlphaJ) < 0.00001:
             print("j not moving enough.")
@@ -157,11 +161,11 @@ def smoPlattInner(scs: SmoCacheStruct, i):
         scs.alphas[i] += scs.y[j] * scs.y[i] * (oldAlphaJ - scs.alphas[j])
         updateErrorK(scs, i)
         b1 = (scs.b - errorI
-              - scs.y[i] * (scs.alphas[i] - oldAlphaI) * scs.x[i, :] * scs.x[i, :].T
-              - scs.y[j] * (scs.alphas[j] - oldAlphaJ) * scs.x[i, :] * scs.x[j, :].T)
+              - scs.y[i] * (scs.alphas[i] - oldAlphaI) * scs.kernel[i, i]
+              - scs.y[j] * (scs.alphas[j] - oldAlphaJ) * scs.kernel[i, j])
         b2 = (scs.b - errorJ
-              - scs.y[i] * (scs.alphas[i] - oldAlphaI) * scs.x[i, :] * scs.x[i, :].T
-              - scs.y[j] * (scs.alphas[j] - oldAlphaJ) * scs.x[j, :] * scs.x[j, :].T)
+              - scs.y[i] * (scs.alphas[i] - oldAlphaI) * scs.kernel[i, i]
+              - scs.y[j] * (scs.alphas[j] - oldAlphaJ) * scs.kernel[j, j])
 
         if (0 < scs.alphas[i]) and (scs.alphas[i] < scs.paramC):
             scs.b = b1
@@ -241,19 +245,78 @@ def smoSimple(dataMat, labels, paramC, toler, maxIterCount):
     return b, alphas
 
 
+def transKernel(x: np.matrix, a: np.matrix, kernelType=('lin', 0)):
+    m, _ = np.shape(x)
+    k = np.mat(np.zeros((m, 1)))
+    if kernelType[0] == 'lin':
+        k = x * a.transpose()
+    elif kernelType[0] == 'gauss':
+        delta = x - a
+        for i in range(m):
+            k[i] = delta[i, :] * delta[i, :].T
+        k = np.exp(k / -(kernelType[1] ** 2))
+    else:
+        raise NameError("Can not find kernel type %s " % kernelType[0])
+    return k
+
+
 def main():
+    # testSet()
+    testSetRBF()
+    print("finished. ")
+
+
+def testSetRBF(k1=1.3):
+    dataArr, labelArr = loadDataSet(SVM_TEST_SET_RBF_PATH)
+    b, alphas = smoPlatt(dataArr, labelArr, 200, 0.0001, 10000, ('gauss', k1))
+    dataMat = np.mat(dataArr)
+    labelMat = np.mat(labelArr).transpose()
+    nonzeroIndics, _ = np.nonzero(alphas[:, 0])
+
+    svmData = dataMat[nonzeroIndics]
+    svmLabel = labelMat[nonzeroIndics]
+    print("there are %d support vectors." % np.shape(svmData)[0])
+
+    errorCount = 0
+
+    dataSize, _ = np.shape(dataMat)
+    for i in range(dataSize):
+        kernel = transKernel(svmData, dataMat[i, :], ('gauss', k1))
+        predict = kernel.T * np.multiply(svmLabel, alphas[nonzeroIndics]) + b
+        if np.sign(predict) != np.sign(labelArr[i]):
+            errorCount += 1
+
+    print("the training error rate is: %f." % (float(errorCount) / dataSize))
+
+    testArr, testLabelArr = loadDataSet(SVM_TEST_SET_RBF2_PATH)
+    testMat = np.mat(testArr)
+    testLabelMat = np.mat(testLabelArr).transpose()
+
+    testErrorCount = 0
+    testSize, _ = np.shape(testMat)
+    for k in range(testSize):
+        kernel = transKernel(svmData, testMat[k, :], ('gauss', k1))
+        testPredict = kernel.T * np.multiply(svmLabel, alphas[nonzeroIndics]) + b
+        if np.sign(testPredict) != np.sign(testLabelArr[k]):
+            testErrorCount += 1
+    print("the test error rate is: %f." % (float(testErrorCount) / testSize))
+    print(b)
+    # print(alphas[alphas > 0])
+
+    # showGraph(dataArr, labelArr)
+
+
+def testSet():
     dataMat, labelMat = loadDataSet(SVM_TEST_SET_PATH)
     b, alphas = smoPlatt(dataMat, labelMat, 9, 0.001, 40)
     # b, alphas = smoSimple(dataMat, labelMat, 0.6, 0.001, 40)
     print(b, alphas[alphas > 0])
-
     W = np.multiply(np.multiply(alphas, np.mat(labelMat).transpose()), np.mat(dataMat)).sum(0)
     w1 = W.getA1()[0]
     w2 = W.getA1()[1]
     b = b.getA1()[0]
     y1 = -5
     x1 = (-b - w2 * y1) / w1
-
     y2 = 3
     x2 = (-b - w2 * y2) / w1
     showGraph(dataMat, labelMat, x1, y1, x2, y2)
