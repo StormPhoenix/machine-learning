@@ -65,6 +65,9 @@ def selectJ(scs: SmoCacheStruct, i, errorI):
                 maxDelta = delta
                 errorJ = errorK
                 j = k
+        # 原代码
+        # if j != -1:
+        #     return j, errorJ
         # TODO 此处, 书中代码不严谨,修改如下
         if j != -1:
             return j, errorJ
@@ -102,7 +105,6 @@ def smoPlatt(dataMat, labels, paramC, paramToler, maxIterCount):
 
     # TODO
     while (iterCount < maxIterCount) and (alphasPairsChanged > 0 or newEntireSet):
-    # while (iterCount < maxIterCount):
         alphasPairsChanged = 0
         if newEntireSet:
             for i in range(scs.dataSize):
@@ -241,7 +243,7 @@ def smoSimple(dataMat, labels, paramC, toler, maxIterCount):
 
 def main():
     dataMat, labelMat = loadDataSet(SVM_TEST_SET_PATH)
-    b, alphas = smoPlatt(dataMat, labelMat, 0.6, 0.001, 40)
+    b, alphas = smoPlatt(dataMat, labelMat, 9, 0.001, 40)
     # b, alphas = smoSimple(dataMat, labelMat, 0.6, 0.001, 40)
     print(b, alphas[alphas > 0])
 
