@@ -71,21 +71,21 @@ def kNNClassify(inx, dataSet, labels, k):
 
 def caseHandwritingClassify():
     trainingLabel = []
-    trainingFileList = os.listdir('/home/stormphoenix/Workspace/ai/machine-learning/data/digits/trainingDigits')
+    trainingFileList = os.listdir('../data/digits/trainingDigits')
     trainingMat = np.zeros((len(trainingFileList), 1024))
     for i, fileNameStr in enumerate(trainingFileList):
         fileName = fileNameStr.split('.')[0]
         number = int(fileName.split('_')[0])
         trainingLabel.append(number)
         trainingMat[i, :] = img2Vector(
-            '/home/stormphoenix/Workspace/ai/machine-learning/data/digits/trainingDigits/%s' %
+            '../data/digits/trainingDigits/%s' %
             fileNameStr)
 
-    testFileList = os.listdir('/home/stormphoenix/Workspace/ai/machine-learning/data/digits/testDigits')
+    testFileList = os.listdir('../data/digits/testDigits')
     testSetSize = len(testFileList)
     errorNum = 0
     for i, fileNameStr in enumerate(testFileList):
-        testVector = img2Vector('/home/stormphoenix/Workspace/ai/machine-learning/data/digits/testDigits/%s' %
+        testVector = img2Vector('../data/digits/testDigits/%s' %
                                 fileNameStr)
         trueLabel = int(fileNameStr.split('_')[0])
         label = kNNClassify(testVector, trainingMat, trainingLabel, 3)
@@ -98,7 +98,7 @@ def caseHandwritingClassify():
 
 
 def showDateFigure():
-    resultMatrix, resultLabel = file2Matrix('/home/stormphoenix/Workspace/ai/machine-learning/data/datingTestSet.txt')
+    resultMatrix, resultLabel = file2Matrix('../data/datingTestSet.txt')
     normData, ranges, minVals = autoNorm(resultMatrix)
     fig = plt.figure()
     ax = fig.add_subplot(111)

@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-SVM_TEST_SET_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSet.txt'
-SVM_TEST_SET_RBF_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSetRBF.txt'
-SVM_TEST_SET_RBF2_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/svm/testSetRBF2.txt'
+SVM_TEST_SET_PATH = '../data/svm/testSet.txt'
+SVM_TEST_SET_RBF_PATH = '../data/svm/testSetRBF.txt'
+SVM_TEST_SET_RBF2_PATH = '../data/svm/testSetRBF2.txt'
 
 
 class SmoCacheStruct:

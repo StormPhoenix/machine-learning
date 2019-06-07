@@ -1,8 +1,8 @@
 import nbm.bayesian as bayes
 import random
 
-HAM_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/ham/%d.txt'
-SPAM_PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/spam/%d.txt'
+HAM_PATH = '../data/ham/%d.txt'
+SPAM_PATH = '../data/spam/%d.txt'
 
 
 def main():

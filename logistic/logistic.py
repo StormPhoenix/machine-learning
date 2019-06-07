@@ -1,6 +1,6 @@
 import numpy as np
 
-PATH = '/home/stormphoenix/Workspace/ai/machine-learning/data/testSet.txt'
+PATH = '../data/testSet.txt'
 
 
 def loadDataSet():
