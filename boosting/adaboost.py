@@ -40,7 +40,7 @@ def main():
     dataMat, labels = loader.loadTestData()
     weakClassifyArr = adaBoostTrain(dataMat, labels, 9)
     print(weakClassifyArr)
-    # scatter.showScatterGraph(dataMat, labels)
+    scatter.showScattersByLabel(np.array(dataMat)[:, 0], np.array(dataMat)[:, 1], labels)
 
 
 if __name__ == '__main__':
