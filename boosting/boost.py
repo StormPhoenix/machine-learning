@@ -34,7 +34,9 @@ def buildStump(dataArr, classLabels, D):
                 predictedVals = stumpClassify(dataMatrix, i, threshVal, inequal)
                 errArr = np.mat(np.ones((m, 1)))
                 errArr[predictedVals == labelMatrix] = 0
-                weightedError = D.T * errArr
+                # 如果 D 没有归一化,则
+                # weightedError = np.dot(D.T, errArr) / np.sum(D)
+                weightedError = np.dot(D.T, errArr)
 
                 print("split: dim %d, thresh %.2f, thresh ineqal: %s, the weighted error is %.3f"
                       % (i, threshVal, inequal, weightedError))
