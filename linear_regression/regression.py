@@ -5,22 +5,48 @@ import numpy.linalg as linalg
 import linear_regression.loader as loader
 
 '''
-TO DO LIST 仔细学习矩阵求导
+TO DO LIST:
+ 矩阵求导
+ 岭回归
+ 缩减技术
+ 特征标准化
 '''
 
 
-def lwlr(predictX, dataArr, labelArr, k=0.01):
-    xMat = np.mat(dataArr)
-    yMat = np.mat(labelArr).transpose()
+def ridgeRegress(xArr, yArr, lam=0.2):
+    '''
+    岭回归
+    :param xArr:
+    :param yArr:
+    :param lam:
+    :return:
+    '''
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).T
+
+    xTx = xMat.T * xMat + np.eye(np.shape(xMat)[1]) * lam
+    if linalg.det(xTx) == 0:
+        print('This matrix is singular, cannot do inverse')
+        return
+    ws = xTx.I * (xMat.T * yMat)
+    return ws
+
+
+def lwlr(predictX, xArr, yArr, k=0.1):
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).transpose()
     m, _ = np.shape(xMat)
     weights = np.mat(np.eye(m))
 
     for j in range(m):
         diffMat = predictX - xMat[j, :]
-        weights[j, j] = np.exp(np.dot(diffMat, diffMat.T) / (-2.0 * k ** 2))
+        a = np.dot(diffMat, diffMat.T)
+        b = a / (-2.0 * k ** 2)
+        c = np.exp(b)
+        weights[j, j] = c
 
     xTWx = xMat.T * (weights * xMat)
-    if linalg.det(xTWx) == 0:
+    if linalg.det(xTWx) == 0.0:
         print('This matrix is singular, cannot do inverse')
         return
 
@@ -60,16 +86,19 @@ def linearRegresTest(testArr, xArr, yArr):
     return np.dot(testMat, ws)
 
 
-def lwlrTest(testArr, xArr, yArr, k=0.01):
+def lwlrTest(testArr, xArr, yArr, k=0.1):
     m = len(testArr)
     yHat = np.mat(np.zeros((m, 1)))
     for i in range(m):
         yHat[i] = lwlr(testArr[i], xArr, yArr, k)
     return yHat
 
+def ridgeTest():
+    np.var()
 
 def main():
-    dataArr, labelArr = loader.loadDataSet()
+    dataArr, labelArr = loader.loadDataSet('../data/linearregression/abalone.txt')
+    # dataArr, labelArr = loader.loadDataSet()
     dataMat = np.mat(dataArr)
     labelMat = np.mat(labelArr).transpose()
 
@@ -79,7 +108,9 @@ def main():
 
     # 测试
     # yHat = linearRegresTest(xMat, dataArr, labelArr)
-    yHat = lwlrTest(xMat, dataArr, labelArr)
+    # yHat = lwlrTest(xMat, dataArr, labelArr)
+    # k cannot be too smaller, or linalg.det() will be zero
+    yHat = lwlrTest(xMat[0:99], dataArr[0:99], labelArr[0:99], 0.1)
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
