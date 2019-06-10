@@ -13,7 +13,7 @@ TO DO LIST:
 '''
 
 
-def ridgeRegress(xArr, yArr, lam=0.2):
+def ridgeRegress(xMat, yMat, lam=0.2):
     '''
     岭回归
     :param xArr:
@@ -21,8 +21,6 @@ def ridgeRegress(xArr, yArr, lam=0.2):
     :param lam:
     :return:
     '''
-    xMat = np.mat(xArr)
-    yMat = np.mat(yArr).T
 
     xTx = xMat.T * xMat + np.eye(np.shape(xMat)[1]) * lam
     if linalg.det(xTx) == 0:
@@ -93,8 +91,23 @@ def lwlrTest(testArr, xArr, yArr, k=0.1):
         yHat[i] = lwlr(testArr[i], xArr, yArr, k)
     return yHat
 
-def ridgeTest():
-    np.var()
+
+def ridgeTest(xArr, yArr):
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).transpose()
+    # data preprocessing
+    yMat = yMat - np.mean(yMat, 0)
+    xMeans = np.mean(xMat, 0)
+    xVar = np.var(xMat, 0)
+    xMat = (xMat - xMeans) / xVar
+
+    testLambdaCount = 30
+    lamMat = np.zeros((testLambdaCount, np.shape(xMat)[1]))
+    for i in range(testLambdaCount):
+        ws = ridgeRegress(xMat, yMat, np.exp(i - 10))
+        lamMat[i, :] = ws.T
+    return lamMat
+
 
 def main():
     dataArr, labelArr = loader.loadDataSet('../data/linearregression/abalone.txt')
@@ -106,21 +119,30 @@ def main():
     xMat = dataMat.copy()
     xMat = xMat[xMat[:, 1].argsort(0)][:, 0, :]
 
-    # 测试
+    # 线性回归
     # yHat = linearRegresTest(xMat, dataArr, labelArr)
+
+    # 局部加权线性回归
     # yHat = lwlrTest(xMat, dataArr, labelArr)
     # k cannot be too smaller, or linalg.det() will be zero
-    yHat = lwlrTest(xMat[0:99], dataArr[0:99], labelArr[0:99], 0.1)
+    # yHat = lwlrTest(xMat[0:99], dataArr[0:99], labelArr[0:99], 0.1)
 
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # ax.scatter(dataMat[:, 1].flatten().A1, labelMat[:, 0].flatten().A1)
+    # ax.plot(xMat[:, 1].flatten().A1, yHat[:, 0].flatten().A1)
+    # plt.show()
+    # # 计算相关系数
+    # coef = np.corrcoef(yHat.T, labelMat.T)
+    # print("coef shape", np.shape(coef))
+    # print("coef: ", coef)
+
+    # 岭回归
+    lambdaMat = ridgeTest(dataArr, labelArr)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.scatter(dataMat[:, 1].flatten().A1, labelMat[:, 0].flatten().A1)
-    ax.plot(xMat[:, 1].flatten().A1, yHat[:, 0].flatten().A1)
+    ax.plot(lambdaMat)
     plt.show()
-    # 计算相关系数
-    coef = np.corrcoef(yHat.T, labelMat.T)
-    print("coef shape", np.shape(coef))
-    print("coef: ", coef)
 
 
 if __name__ == '__main__':
