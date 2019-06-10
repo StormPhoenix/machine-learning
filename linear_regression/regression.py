@@ -1,15 +1,15 @@
-import linear_regression.loader as loader
 import matplotlib.pyplot as plt
-import graph.scatter as scatter
 import numpy as np
 import numpy.linalg as linalg
+
+import linear_regression.loader as loader
 
 '''
 TO DO LIST 仔细学习矩阵求导
 '''
 
 
-def locallyWeightedLinearRegres(predictX, dataArr, labelArr, k=0.01):
+def lwlr(predictX, dataArr, labelArr, k=0.01):
     xMat = np.mat(dataArr)
     yMat = np.mat(labelArr).transpose()
     m, _ = np.shape(xMat)
@@ -49,41 +49,38 @@ def standRegres(xArr, yArr):
     return ws
 
 
-def testLinearRegres():
-    dataArr, labelArr = loader.loadDataSet()
-    ws = standRegres(dataArr, labelArr)
+def rssError(yArr, yHatArr):
+    return ((yArr - yHatArr) ** 2).sum()
+
+
+def linearRegresTest(testArr, xArr, yArr):
+    ws = standRegres(xArr, yArr)
     print('ws:', ws)
-
-    xMat = np.mat(dataArr)
-    yMat = np.mat(labelArr).transpose()
-    yHat = np.dot(xMat, ws)
-
-    # draw graph
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.scatter(xMat[:, 1].flatten().A1, yMat[:, 0].flatten().A1)
-    xCopy = xMat[:, 1]
-    print(np.shape(xCopy))
-    ax.plot(xCopy[:, 0].flatten().A1, yHat[:, 0].flatten().A1)
-    plt.show()
-    # 计算相关系数
-    coef = np.corrcoef(yHat.T, yMat.T)
-    print("coef shape", np.shape(coef))
-    print("coef: ", coef)
+    testMat = np.mat(testArr)
+    return np.dot(testMat, ws)
 
 
-def testLwlr():
+def lwlrTest(testArr, xArr, yArr, k=0.01):
+    m = len(testArr)
+    yHat = np.mat(np.zeros((m, 1)))
+    for i in range(m):
+        yHat[i] = lwlr(testArr[i], xArr, yArr, k)
+    return yHat
+
+
+def main():
     dataArr, labelArr = loader.loadDataSet()
     dataMat = np.mat(dataArr)
     labelMat = np.mat(labelArr).transpose()
-    m, _ = np.shape(dataMat)
 
+    m, _ = np.shape(dataMat)
     xMat = dataMat.copy()
     xMat = xMat[xMat[:, 1].argsort(0)][:, 0, :]
-    yHat = np.mat(np.zeros((m, 1)))
-    for i in range(m):
-        yHat[i] = locallyWeightedLinearRegres(xMat[i, :], dataArr, labelArr)
-    # draw graph
+
+    # 测试
+    # yHat = linearRegresTest(xMat, dataArr, labelArr)
+    yHat = lwlrTest(xMat, dataArr, labelArr)
+
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.scatter(dataMat[:, 1].flatten().A1, labelMat[:, 0].flatten().A1)
@@ -93,11 +90,6 @@ def testLwlr():
     coef = np.corrcoef(yHat.T, labelMat.T)
     print("coef shape", np.shape(coef))
     print("coef: ", coef)
-
-
-def main():
-    # testLinearRegres()
-    testLwlr()
 
 
 if __name__ == '__main__':
