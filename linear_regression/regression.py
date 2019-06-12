@@ -77,6 +77,54 @@ def rssError(yArr, yHatArr):
     return ((yArr - yHatArr) ** 2).sum()
 
 
+def regularize(xMat):
+    inMat = xMat.copy()
+    inMeans = np.mean(inMat, 0)
+    # inVar = np.var(inMat, 0) 替换成 inStd = np.std(inMat, 0)
+    inVar = np.var(inMat, 0)
+    inMat = (inMat - inMeans) / inVar
+    return inMat
+
+
+def stageWise(xArr, yArr, eps=0.01, numIt=100):
+    '''
+    前向逐步线性回归
+    :param xArr:
+    :param yArr:
+    :param eps:
+    :param numIt:
+    :return:
+    '''
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).T
+
+    yMat = yMat - np.mean(yMat, 0)
+
+    xMat = regularize(xMat)
+    m, n = np.shape(xMat)
+    returnWsMat = np.zeros((numIt, n))
+
+    ws = np.zeros((n, 1))
+    wsBest = ws.copy()
+
+    for i in range(numIt):
+        # 每次迭代仅处理一个feature
+        print(ws.T)
+        lowestError = np.inf
+        for feature in range(n):
+            for sign in [-1, 1]:
+                wsTest = ws.copy()
+                wsTest[feature] += eps * sign
+                yTest = xMat * wsTest
+                e = rssError(yMat.A, yTest.A)
+                if e < lowestError:
+                    lowestError = e
+                    wsBest = wsTest
+        ws = wsBest.copy()
+        returnWsMat[i, :] = ws.T
+    return returnWsMat
+
+
 def linearRegresTest(testArr, xArr, yArr):
     ws = standRegres(xArr, yArr)
     print('ws:', ws)
@@ -138,11 +186,25 @@ def main():
     # print("coef: ", coef)
 
     # 岭回归
-    lambdaMat = ridgeTest(dataArr, labelArr)
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(lambdaMat)
-    plt.show()
+    # lambdaMat = ridgeTest(dataArr, labelArr)
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # ax.plot(lambdaMat)
+    # plt.show()
+
+    # 前向逐步线性回归
+    # wsMat = stageWise(dataArr, labelArr, 0.005, 1000)
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # ax.plot(wsMat)
+    # plt.show()
+
+    # 线性回归
+    # ws = standRegres(dataArr, labelArr)
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # ax.plot(np.append(wsMat, ws.T, 0))
+    # plt.show()
 
 
 if __name__ == '__main__':
