@@ -77,6 +77,8 @@ def rssError(yArr, yHatArr):
     return ((yArr - yHatArr) ** 2).sum()
 
 
+# TODO
+# xMat为何这样标准化的
 def regularize(xMat):
     inMat = xMat.copy()
     inMeans = np.mean(inMat, 0)
