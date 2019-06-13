@@ -34,14 +34,16 @@ def choseBestSplitFeature(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4))
             if (np.shape(mat0)[0] < minDataSize or
                     np.shape(mat1)[0] < minDataSize):
                 continue
-            tempError = regErr(mat0) + regErr(mat1)
+            tempError = errType(mat0) + errType(mat1)
             if tempError < bestS:
                 bestS = tempError
                 bestFeat = feat
                 bestVal = splitVal
 
     if S - bestS < varStep:
+        print("choseBestSplitFeature() S : ", S, " bestS : ", bestS)
         return None, leafType(dataSet)
+    print("choseBestSplitFeature() bestFeature : ", bestFeat, " bestVal : ", bestVal)
     return bestFeat, bestVal
 
 
