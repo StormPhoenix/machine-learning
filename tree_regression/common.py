@@ -9,15 +9,7 @@ def binSplitDataSet(dataSet, feature, value):
     return mat0, mat1
 
 
-def regErr(dataMat):
-    return np.var(dataMat[:, -1]) * np.shape(dataMat)[0]
-
-
-def regLeaf(dataMat):
-    return np.mean(dataMat[:, -1])
-
-
-def choseBestSplitFeature(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
+def choseBestSplitFeature(dataSet, leafType, errType, ops=(1, 4)):
     dataMat = np.mat(dataSet)
     if len(list(set(dataMat[:, -1].T.A1))) == 1:
         return None, leafType(dataMat)
@@ -47,7 +39,7 @@ def choseBestSplitFeature(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4))
     return bestFeat, bestVal
 
 
-def createTree(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
+def createTree(dataSet, leafType, errType, ops=(1, 4)):
     feature, val = choseBestSplitFeature(dataSet, leafType, errType, ops)
     if feature is None:
         return val
@@ -104,11 +96,6 @@ def main():
     dataMat = np.mat(dataSet)
     import graph.scatter as scatter
     scatter.showScatters(dataMat[:, 0].T.A1, dataMat[:, 1].T.A1)
-    tree = createTree(dataSet, ops=(0, 1))
-    print(tree)
-    dataTest = loader.loadDataSet('../data/reg/ex2test.txt')
-    prune(tree, dataTest)
-    print(tree)
 
 
 if __name__ == '__main__':
