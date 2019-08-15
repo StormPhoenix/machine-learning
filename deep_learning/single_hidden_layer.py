@@ -1,14 +1,32 @@
+import os
+import pickle
+
 import numpy as np
 
-HIDDEN_LAYER_COUNT = 3
-HIDDEN_LAYER_UNITS = [5, 10, 5]
+HIDDEN_LAYER_COUNT = 2
+HIDDEN_LAYER_UNITS = [5, 4]
 # HIDDEN_LAYER_UNITS = [5, 10, 20, 40, 60, 30, 20, 5]
-iteration_count = 500
 
-alpha = 0.01
+RANDOM_MODEL_PATH = '../deep_learning/random.model'
+FINAL_MODEL_PATH = '../deep_learning/final.model'
+
+iteration_count = 100
+
+alpha = 0.1
 
 TRAIN_DATA_PATH = '../deep_learning/testSetRBF.txt'
 TEST_DATA_PATH = '../deep_learning/testSetRBF2.txt'
+
+
+def store_model(model, file_path):
+    fw = open(file_path, "wb")
+    pickle.dump(model, fw)
+    fw.close()
+
+
+def load_model(file_path):
+    fr = open(file_path, "rb")
+    return pickle.load(fr)
 
 
 def load_data(file_path=TRAIN_DATA_PATH):
@@ -59,6 +77,7 @@ def make_single_hidden_layer_network(data, label):
     network = make_network_framework(feature_count=feature_count)
     weight_list = network['weight']
     bias_list = network['bias']
+    store_model({'weight': weight_list, 'bias': bias_list}, RANDOM_MODEL_PATH)
     layers = network['layers']
     print(weight_list)
     z_cache = [x]
@@ -69,6 +88,7 @@ def make_single_hidden_layer_network(data, label):
     z_cache.append(np.mat(np.zeros((1, data_count))))
 
     for iter_count in range(iteration_count):
+        # print('iteration count: ', iter_count)
         a = z_cache[0]
         for layer in range(layers):
             weight = weight_list[layer]
@@ -88,9 +108,13 @@ def make_single_hidden_layer_network(data, label):
             db = np.mat(np.zeros(bias.shape))
             base = np.multiply(dai, np.multiply(ai, (1 - ai)))
             for i in range(data_count):
+                if i == 99:
+                    print('')
                 dw = dw + np.dot(base[:, i], ai_1[:, i].T)
                 db = db + base[:, i]
             dw = dw / data_count
+            print('iteration: ', iter_count)
+            print('dw: ', dw)
             db = db / data_count
             # update da
             dai = np.dot(weight.T, base)
@@ -115,12 +139,19 @@ def predict(weight_list, bias_list, data):
 
 
 def main():
-    train_set, train_label = load_data(TRAIN_DATA_PATH)
-    weight_list, bias_list = make_single_hidden_layer_network(train_set, train_label)
-    print(weight_list)
-    test_set, test_label = load_data(TRAIN_DATA_PATH)
+    if not os.path.exists(FINAL_MODEL_PATH):
+        train_set, train_label = load_data(TRAIN_DATA_PATH)
+        weight_list, bias_list = make_single_hidden_layer_network(train_set, train_label)
+        store_model({'weight': weight_list, 'bias': bias_list}, FINAL_MODEL_PATH)
+        print(weight_list)
+
+    test_set, test_label = load_data(TEST_DATA_PATH)
     test_count, _ = test_set.shape
     correct_count = 0
+    network = load_model(RANDOM_MODEL_PATH)
+    # network = load_model(FINAL_MODEL_PATH)
+    weight_list = network['weight']
+    bias_list = network['bias']
     for i in range(test_count):
         value = predict(weight_list, bias_list, test_set[i, :])
         real_value = test_label[i, 0]
